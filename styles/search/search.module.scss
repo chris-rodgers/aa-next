@@ -1,0 +1,119 @@
+// Header
+.header{
+    background-color: var(--color-cobalt);
+    color: white;
+    padding: 2px 0;
+    position: sticky;
+    top: 0;
+    box-shadow: 0px 2px 16px -10px black;
+    z-index: 1;
+    &__row{
+        display: flex;
+        overflow-x: scroll;
+        align-items: center;
+        height: 34px;
+        padding: 0 var(--spacing);
+        // background: linear-gradient(to right, black, transparent 10px), 
+        // linear-gradient(to left, black, transparent 10px);
+        // background-attachment: local, local, fixed, fixed;
+    }
+    &__item{
+        border-radius: 20px;
+        padding: 0 10px;
+        height: 28px;
+        margin: 0 var(--spacing-small) 0 0;
+        border: 1px solid white;
+        background-color: white;
+        color: var(--color-cobalt);
+        white-space: nowrap;
+        box-shadow: 0px 2px 6px -3px black;
+        font-size: 14px;
+    }
+}
+
+// Price Groups
+.price-group{
+    display: flex;
+    margin: var(--spacing);
+    align-items: center;
+    border-radius: var(--border-radius);
+    box-shadow: 0px 2px 6px -3px rgba(0, 0, 0, 0.5);
+    padding: 0 var(--spacing-small);
+    user-select: none;
+    background-color: white;
+
+    &__segments{
+        flex: 1;
+    }
+    &__price{
+        // font-size: 18px;
+        margin-right: var(--spacing-small);
+    }
+}
+
+// Segment
+.segment{
+    display: flex;
+    align-items: center;
+    margin-right: var(--spacing);
+    &__logo{
+        display: block;
+        margin-right: var(--spacing);
+        width: 60px;
+        img{
+            display: block;
+        }
+    }
+    &__content{
+        flex: 1;
+    }
+    &__airports{
+        display: flex;
+        align-items: center;
+        flex: 1;
+        margin-right: var(--spacing);
+        padding: var(--spacing) 0 var(--spacing-small) 0;
+        justify-content: space-between;
+    }
+    &:not(:last-of-type){
+        border-bottom: 0.5px solid var(--color-cadet);
+    }
+    &__legs{
+        text-align: center;
+        flex-basis: 50px;
+        font-size: 9px;
+        opacity: 0.5;
+    }
+    &__tags{
+        display: flex;
+        margin-bottom: var(--spacing-small);
+        white-space: nowrap;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+
+// Airport
+.airport{
+    flex-basis: 20px;
+    &__code{
+        font-size: 9px;
+        opacity: 0.5;
+        line-height: 1.5;
+    }
+    &__time{
+        font-size: 16px;
+        line-height: 1;
+        font-weight: bold;
+    }
+}
+
+// Tags
+.tag{
+    font-size: 9px;
+    opacity: 0.5;
+    border-radius: var(--border-radius);
+    padding: 1px var(--spacing-small);
+    background-color: var(--color-cadet);
+    margin: 0 var(--spacing-small) var(--spacing-small) 0;
+}

@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import Head from 'next/head';
 import '../styles/_variables.scss';
 import '../styles/globals.scss';
 import styles from '../styles/app.module.scss';
@@ -13,6 +15,20 @@ function App({ Component, pageProps }) {
   }, []);
 
   return <React.Fragment>
+    <Head>
+      <meta charset='utf-8' />
+      <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+      <meta name='viewport' content='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no' />
+      <meta name='description' content='Description' />
+      <meta name='keywords' content='Keywords' />
+      <title>Alternative Airlines</title>
+
+      <link rel='manifest' href='/manifest.json' />
+      {/* <link href='/favicon-16x16.png' rel='icon' type='image/png' sizes='16x16' />
+      <link href='/favicon-32x32.png' rel='icon' type='image/png' sizes='32x32' />
+      <link rel='apple-touch-icon' href='/apple-icon.png'></link> */}
+      <meta name='theme-color' content='#2990e6' />
+    </Head>
     <div className={styles.header}>
       <svg className={styles.logo} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 326" role="img" aria-label="Alternative Airlines">
         <title>Alternative Airlines</title>

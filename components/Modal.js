@@ -4,14 +4,14 @@ import styles from "../styles/components/Modal.module.scss";
 import classnames from "classnames";
 import useDelayUnmount from "../hooks/useDelayUnmount";
 
-function Modal({ position = 'fullscreen', ...props }) {
-    const shouldRenderChild = useDelayUnmount(props.open, 200);
+function Modal({ position = 'fullscreen', title, open, handleClose, children }) {
+    const shouldRenderChild = useDelayUnmount(open, 200);
 
     const className = classnames(styles.modal, styles['modal--position-' + position], {
-        [`${styles['modal--visible']}`]: props.open
+        [`${styles['modal--visible']}`]: open
     });
 
-    React.useEffect(() => { 
+    React.useEffect(() => {
         document.body.style.overflow = shouldRenderChild ? 'hidden' : 'visible';
     }, [shouldRenderChild])
 
@@ -21,11 +21,16 @@ function Modal({ position = 'fullscreen', ...props }) {
 
     return ReactDOM.createPortal(
         <div className={className}>
-            <div className={styles.overlay} onClick={props.handleClose} />
+            <div className={styles.overlay} onClick={handleClose} />
             <div className={styles.spacer} />
             <div className={styles.container}>
-                <button className={styles['close-button']} onClick={props.handleClose}>×</button>
-                {props.children}
+                <div className={styles.header}>
+                    {title ? <div className={styles.title}>
+                        {title}
+                    </div>: null}
+                    <button className={styles['close-button']} onClick={handleClose}>×</button>
+                </div>
+                {children}
             </div>
         </div>,
         document.getElementById('modal-root')
@@ -35,5 +40,7 @@ function Modal({ position = 'fullscreen', ...props }) {
 
 // HOC
 export default function withModal(WrappedComponent) {
-    return props => <Modal {...props}><WrappedComponent {...props} /></Modal>;
+    return ({ open, handleClose, position, title, ...rest }) => <Modal title={title} open={open} handleClose={handleClose} position={position}>
+        <WrappedComponent handleClose={handleClose} {...rest} />
+    </Modal>;
 }

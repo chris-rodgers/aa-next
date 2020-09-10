@@ -1,15 +1,18 @@
 import React from 'react';
 import Head from 'next/head';
 import styles from "../styles/search/search.module.scss";
+import flight from "../styles/search/flight.module.scss";
 import withModal from '../components/Modal';
+
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function Search() {
     const [results, setResults] = React.useState({});
-    const [selectedFlight, setSelectedFlight] = React.useState();
+    const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
     const [selectedFilter, setSelectedFilter] = React.useState();
 
-    const handleSelectFlight = () => {
-        setSelectedFlight({})
+    const handleSelectPriceGroup = e => {
+        setSelectedPriceGroup(Number(e.currentTarget.dataset.id))
     };
 
     const handleSelectFilter = () => {
@@ -45,7 +48,7 @@ export default function Search() {
         </div>
         <div>
             {results.priceGroups ? results.priceGroups.map(priceGroup => {
-                return <div className={styles['price-group']} key={priceGroup.id} onClick={handleSelectFlight}>
+                return <div className={styles['price-group']} key={priceGroup.id} onClick={handleSelectPriceGroup} data-id={priceGroup.id}>
                     <div className={styles['price-group__segments']}>
                         {priceGroup.groupSegments.map(groupSegments => {
                             const segment = groupSegments.segments[0]; // May have to loop through if we do grouping again
@@ -89,13 +92,65 @@ export default function Search() {
                 </div>
             }) : null}
         </div>
-        <Flight open={selectedFlight} handleClose={() => { setSelectedFlight(undefined) }} position="bottom"/>
-        <Filter open={selectedFilter} handleClose={() => { setSelectedFilter(undefined) }} />
+        <Flight open={selectedPriceGroup != undefined}
+            handleClose={() => { setSelectedPriceGroup(undefined) }}
+            position="bottom"
+            selectedPriceGroup={selectedPriceGroup}
+            results={results}
+            title="Flight Details"
+        />
+        <Filter open={selectedFilter}
+            handleClose={() => { setSelectedFilter(undefined) }}
+        />
     </React.Fragment>
 }
 
 const Flight = withModal(props => {
-    return <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed aliquet faucibus nisl vel dignissim. Fusce sit amet fermentum dui. Sed odio mi, rutrum a sem et, malesuada lacinia mi. Pellentesque eget sapien id purus condimentum aliquam. Morbi maximus, urna et viverra condimentum, risus erat suscipit sapien, ac malesuada odio metus non diam. Ut quis arcu non neque congue eleifend. Donec porttitor gravida arcu, sed viverra diam viverra eu. Etiam interdum rhoncus tincidunt. Sed purus urna, hendrerit at tincidunt sit amet, aliquet vitae turpis. Sed eleifend tincidunt odio et commodo. Praesent nec ullamcorper nibh. Vivamus sapien risus, sodales sit amet lectus eu, rhoncus hendrerit odio. Mauris nulla purus, molestie sed aliquet eu, tristique sed quam. Nunc fringilla nec orci ut finibus. Phasellus maximus ipsum eget justo lacinia, vitae eleifend augue auctor. Nam venenatis, mi at porttitor placerat, velit sem lobortis augue, id egestas nunc turpis non urna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed aliquet faucibus nisl vel dignissim. Fusce sit amet fermentum dui. Sed odio mi, rutrum a sem et, malesuada lacinia mi. Pellentesque eget sapien id purus condimentum aliquam. Morbi maximus, urna et viverra condimentum, risus erat suscipit sapien, ac malesuada odio metus non diam. Ut quis arcu non neque congue eleifend. Donec porttitor gravida arcu, sed viverra diam viverra eu. Etiam interdum rhoncus tincidunt. Sed purus urna, hendrerit at tincidunt sit amet, aliquet vitae turpis. Sed eleifend tincidunt odio et commodo. Praesent nec ullamcorper nibh. Vivamus sapien risus, sodales sit amet lectus eu, rhoncus hendrerit odio. Mauris nulla purus, molestie sed aliquet eu, tristique sed quam. Nunc fringilla nec orci ut finibus. Phasellus maximus ipsum eget justo lacinia, vitae eleifend augue auctor. Nam venenatis, mi at porttitor placerat, velit sem lobortis augue, id egestas nunc turpis non urna.</div>
+    const selectedPriceGroup = React.useRef(props.results.priceGroups.filter(priceGroup => priceGroup.id == props.selectedPriceGroup)).current[0];
+    console.log(selectedPriceGroup);
+    return <React.Fragment>
+        <div>
+            {selectedPriceGroup.groupSegments.map(groupSegment => {
+                const segment = groupSegment.segments[0]; // May have to change this if we do grouping again
+
+                return <div>
+                    <div class={flight['segment-label']}>{groupSegment.label}</div>
+                    <div class={flight.legs}>
+                        {segment.legs.map((leg, i) => {
+                            console.log(leg)
+                            return <React.Fragment>
+                                <div class={flight.airport}>
+                                    <div class={flight.airport__dot} />
+                                    <div>
+                                        {leg.departureAirportName} <small>{leg.departureAirportCode}</small>
+                                        <div>
+                                            <small>Depart: {dateToString(new Date(leg.departureDateTime.date))}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {segment.legs.length - 1 == i ? <div class={flight.airport}>
+                                    <div class={flight.airport__dot} />
+                                    <div>
+                                        {leg.arrivalAirportName} <small>{leg.arrivalAirportCode}</small>
+                                        <div>
+                                            <small>Arrive: {dateToString(new Date(leg.arrivalDateTime.date))}</small>
+                                        </div>
+                                    </div>
+                                </div> : null}
+                            </React.Fragment>
+                        })}
+                    </div>
+                </div>
+            })}
+        </div>
+        <div class={flight.price}>
+            Great Price!
+            <strong dangerouslySetInnerHTML={{ __html: formatPrice(selectedPriceGroup) }}/>
+        </div>
+        <div class={flight.footer}>
+            <button class="button">Book Flight</button>
+        </div>
+    </React.Fragment>
 })
 
 const Filter = withModal(props => {
@@ -104,4 +159,8 @@ const Filter = withModal(props => {
 
 function formatPrice(priceGroup) {
     return `${priceGroup.fareTotalPrefix}${priceGroup.fareTotalIntText}${priceGroup.fareTotalDecimalPoint}${priceGroup.fareTotalDecText}${priceGroup.fareTotalSuffix}`
+}
+
+function dateToString(date) {
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getHours()}:${date.getMinutes()}`
 }

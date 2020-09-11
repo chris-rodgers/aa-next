@@ -17,6 +17,7 @@ const outerRef = React.createRef();
 export default function Search() {
     const [results, setResults] = React.useState({});
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
+    const [sort, setSort] = React.useState('CHEAPEST');
     const [selectedModal, setSelectedModal] = React.useState();
     const itemSize = (44 * 2) + 14; // (height of each segment * segment count) + padding
 
@@ -32,6 +33,10 @@ export default function Search() {
     const handleSelectModal = e => {
         setSelectedModal(e.target.dataset.modal)
     };
+
+    const handleSetSort = e => {
+        setSort(e.currentTarget.dataset.sort)
+    }
 
 
     React.useEffect(() => {
@@ -88,6 +93,10 @@ export default function Search() {
                 </List>
             )}
         </AutoSizer>
+        <div class={styles.sort}>
+            <div class={classnames(styles.sort__item, { [`${styles['sort__item--active']}`]: sort == 'CHEAPEST' })} onClick={handleSetSort} data-sort="CHEAPEST">Cheapest</div>
+            <div class={classnames(styles.sort__item, { [`${styles['sort__item--active']}`]: sort == 'FASTEST' })} onClick={handleSetSort} data-sort="FASTEST">Fastest</div>
+        </div>
         <Flight open={selectedPriceGroup != undefined}
             handleClose={() => { setSelectedPriceGroup(undefined) }}
             position="bottom"
@@ -102,7 +111,7 @@ export default function Search() {
 const Result = React.memo(({ data: { priceGroups, handleSelectPriceGroup, selectedPriceGroup }, index, style }) => {
     const priceGroup = priceGroups[index];
     const isActive = selectedPriceGroup == priceGroup.id;
-    const className = classnames(styles['price-group'], {[`${styles['price-group--active']}`]: isActive})
+    const className = classnames(styles['price-group'], {[`${ styles['price-group--active']}`]: isActive})
 
     return <div style={style} >
         <div className={className} key={priceGroup.id} onClick={handleSelectPriceGroup} data-id={priceGroup.id} data-index={index}>
@@ -113,7 +122,7 @@ const Result = React.memo(({ data: { priceGroups, handleSelectPriceGroup, select
                     // console.log(groupSegments.segments)
                     return <div className={styles.segment} key={segment.itineraryGroupId}>
                         <div className={styles.segment__logo}>
-                            <img src={`/airlinelogos/${segment.operatingAirlineCode.toLowerCase()}_logo.gif`} />
+                            <img src={`/airlinelogos/${ segment.operatingAirlineCode.toLowerCase()}_logo.gif`} />
                         </div>
                         <div className={styles.segment__content}>
                             <div className={styles.segment__airports}>
@@ -123,7 +132,7 @@ const Result = React.memo(({ data: { priceGroups, handleSelectPriceGroup, select
                                 </div>
                                 <div className={styles.segment__legs}>
                                     <small>{segment.eft}</small>
-                                    <div>{stops ? `${stops} Stop(s)` : 'Direct'}</div>
+                                    <div>{stops ? `${ stops } Stop(s)` : 'Direct'}</div>
                                 </div>
                                 <div className={styles.airport}>
                                     <div className={styles.airport__time}>{segment.arrivalTime}</div>
@@ -199,9 +208,9 @@ const Flight = withModal(props => {
 const createItemData = memoize(data => data)
 
 function formatPrice(priceGroup) {
-    return `${priceGroup.fareTotalPrefix}${priceGroup.fareTotalIntText}${priceGroup.fareTotalDecimalPoint}${priceGroup.fareTotalDecText}${priceGroup.fareTotalSuffix}`
+    return `${ priceGroup.fareTotalPrefix }${ priceGroup.fareTotalIntText }${ priceGroup.fareTotalDecimalPoint }${ priceGroup.fareTotalDecText }${ priceGroup.fareTotalSuffix }`
 }
 
 function dateToString(date) {
-    return `${date.getDate()} ${months[date.getMonth()]} ${date.getHours()}:${date.getMinutes()}`
+    return `${ date.getDate() } ${ months[date.getMonth()]} ${ date.getHours() }:${date.getMinutes()}`
 }

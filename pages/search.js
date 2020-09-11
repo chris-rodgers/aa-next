@@ -10,6 +10,7 @@ var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oc
 var filters = {
     PassengerPicker
 }
+const segmentCount = 2;
 
 export default function Search() {
     const [results, setResults] = React.useState({});
@@ -36,11 +37,20 @@ export default function Search() {
 
     return <React.Fragment>
         <div className={styles.header}>
+            <svg className={styles.header__icon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M18.47,4.61a2.81,2.81,0,0,0-.68-1.3L14.69.43A1.72,1.72,0,0,0,13.37,0l-.6.1-.15,0L11.18.37,11,.4,9.79.59a1.71,1.71,0,0,0-1.1.79L6.94,5a2.75,2.75,0,0,0-.21,1.45L9.22,20.82a1.31,1.31,0,0,0,1.5,1.05l9.45-1.5c.71-.12.92-.73.8-1.42Zm-5.62.9a2,2,0,0,1-2.38-2.22,2,2,0,0,1,1.26-1.67,2.05,2.05,0,0,1,2.8,1.55v0a2,2,0,0,1-1.68,2.33Z" style={{ fill: "#73caf1" }} />
+                <path d="M17.65,7.18a3,3,0,0,0-.3-1.55l-2.3-3.9A1.9,1.9,0,0,0,13.81.87L13.16.8,13,.77,11.45.56h-.2L10,.37A1.8,1.8,0,0,0,8.55.86L5.62,4.09A2.86,2.86,0,0,0,5,5.49L3,21.07a1.41,1.41,0,0,0,1.21,1.56L14.44,24c.76.1,1.18-.47,1.29-1.23Zm-6.26-.84a2.19,2.19,0,1,1,2.48-1.89h0a2.21,2.21,0,0,1-2.48,1.9h0Z" style={{ fill: "#be1d2e" }} />
+            </svg>
             <div className={styles.header__row}>
                 <button className={styles.header__item}>🛫&nbsp; London - Paris</button>
                 <button className={styles.header__item} onClick={handleSelectModal} data-modal="PassengerPicker">👥&nbsp; 1 Adult</button>
                 <button className={styles.header__item}>📅&nbsp; Sat 10 Oct - Sat 17 Oct</button>
             </div>
+        </div>
+        <div className={`${styles.header} ${styles['header--filters']}`}>
+            <svg className={styles.header__icon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M4.25,5.61C6.27,8.2,10,13,10,13v6c0,0.55,0.45,1,1,1h2c0.55,0,1-0.45,1-1v-6c0,0,3.72-4.8,5.74-7.39 C20.25,4.95,19.78,4,18.95,4H5.04C4.21,4,3.74,4.95,4.25,5.61z" fill="#384756" />
+            </svg>
             <div className={styles.header__row}>
                 <button className={styles.header__item} onClick={handleSelectModal}>Flexible Changes</button>
                 <button className={styles.header__item} onClick={handleSelectModal}>Flexible Cancellation</button>
@@ -54,7 +64,7 @@ export default function Search() {
         </div>
         <AutoSizer>
             {({ height, width }) => (
-                <List height={height - 91} width={width} itemCount={results.priceGroups.length} itemSize={(44*2)+10}>
+                <List height={height - 76} width={width} itemCount={results.priceGroups.length} itemSize={(44 * segmentCount) + 10}>
                     {({ index, style }) => {
                         const priceGroup = results.priceGroups[index];
                         return <div style={style}>

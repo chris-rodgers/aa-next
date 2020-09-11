@@ -56,6 +56,7 @@ export default function Search() {
                 const segment = gs.segments[0]; // May need to change this
                 // example
                 // return segment.operatingAirlineCode == "BA";
+                return true;
             })
                         
             return segmentFilters.length  == segments;

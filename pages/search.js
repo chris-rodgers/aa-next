@@ -55,10 +55,10 @@ export default function Search() {
             const segmentFilters = items.groupSegments.filter(gs => {
                 const segment = gs.segments[0]; // May need to change this
                 // example
-                return segment.operatingAirlineCode == "BA";
+                // return segment.operatingAirlineCode == "BA";
             })
                         
-            return segmentFilters.length == segments;
+            return segmentFilters.length  == segments;
         });
 
         setPriceGroups({ priceGroups: filteredPriceGroups, sort: newSort, filters: newFilters });

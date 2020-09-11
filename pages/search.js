@@ -14,12 +14,13 @@ var modals = {
 }
 const outerRef = React.createRef();
 let rawPriceGroups = [];
+const segments = 2;
 
 export default function Search() {
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
     const [{ priceGroups, sort, filters }, setPriceGroups] = React.useState({ priceGroups: [], sort: "CHEAPEST", filters: {} });
     const [selectedModal, setSelectedModal] = React.useState();
-    const itemSize = (44 * 2) + 14; // (height of each segment * segment count) + padding
+    const itemSize = (44 * segments) + 14; // (height of each segment * segment count) + padding
 
     const Modal = withModal(modals[selectedModal]);
 
@@ -49,7 +50,16 @@ export default function Search() {
         }[newSort](rawPriceGroups);
 
         // Filtering
-        const filteredPriceGroups = sortedPriceGroups;
+        const filteredPriceGroups = sortedPriceGroups.filter(items => {
+
+            const segmentFilters = items.groupSegments.filter(gs => {
+                const segment = gs.segments[0]; // May need to change this
+                // example
+                return segment.operatingAirlineCode == "BA";
+            })
+                        
+            return segmentFilters.length == segments;
+        });
 
         setPriceGroups({ priceGroups: filteredPriceGroups, sort: newSort, filters: newFilters });
     }

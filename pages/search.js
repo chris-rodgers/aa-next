@@ -85,7 +85,7 @@ export default function Search() {
                     outerRef={listRef}
                     itemData={itemData}
                 >
-                    {Row}
+                    {Result}
                 </List>
             )}
         </AutoSizer>
@@ -100,7 +100,7 @@ export default function Search() {
     </React.Fragment>
 }
 
-const Row = React.memo(({ data: { priceGroups, handleSelectPriceGroup, selectedPriceGroup }, index, style }) => {
+const Result = React.memo(({ data: { priceGroups, handleSelectPriceGroup, selectedPriceGroup }, index, style }) => {
     const priceGroup = priceGroups[index];
     const isActive = selectedPriceGroup == priceGroup.id;
     const className = classnames(styles['price-group'], {[`${styles['price-group--active']}`]: isActive})

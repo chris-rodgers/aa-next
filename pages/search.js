@@ -1,30 +1,38 @@
 import React from 'react';
-import Head from 'next/head';
+import { FixedSizeList as List, areEqual } from 'react-window';
+import AutoSizer from "react-virtualized-auto-sizer";
+import memoize from "memoize-one";
+import classnames from "classnames";
 import styles from "../styles/search/search.module.scss";
 import flight from "../styles/search/flight.module.scss";
 import withModal from '../components/Modal';
 import PassengerPicker from "../modules/PassengerPicker";
-import { FixedSizeList as List } from 'react-window';
-import AutoSizer from "react-virtualized-auto-sizer";
+
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 var filters = {
     PassengerPicker
 }
-const segmentCount = 2;
 
 export default function Search() {
     const [results, setResults] = React.useState({});
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
     const [selectedModal, setSelectedModal] = React.useState();
+    const listRef = React.createRef();
+    const itemSize = (44 * 2) + 14; // (height of each segment * segment count) + padding
+
     const Modal = withModal(filters[selectedModal]);
 
     const handleSelectPriceGroup = e => {
-        setSelectedPriceGroup(Number(e.currentTarget.dataset.id))
+        setSelectedPriceGroup(Number(e.currentTarget.dataset.id));
+        if (listRef.current) {
+            listRef.current.scroll({ top: itemSize * Number(e.currentTarget.dataset.index), behavior: "smooth" });
+        }
     };
 
     const handleSelectModal = e => {
         setSelectedModal(e.target.dataset.modal)
     };
+
 
     React.useEffect(() => {
         // Call search API
@@ -34,6 +42,12 @@ export default function Search() {
     if (!results.priceGroups) {
         return null;
     }
+
+    const itemData = createItemData({
+        priceGroups: results.priceGroups,
+        handleSelectPriceGroup,
+        selectedPriceGroup
+    });
 
     return <React.Fragment>
         <div className={styles.header}>
@@ -64,54 +78,14 @@ export default function Search() {
         </div>
         <AutoSizer>
             {({ height, width }) => (
-                <List height={height - 88} width={width} itemCount={results.priceGroups.length} itemSize={(44 * segmentCount) + 10}>
-                    {({ index, style }) => {
-                        const priceGroup = results.priceGroups[index];
-                        return <div style={style}>
-                            <div className={styles['price-group']} key={priceGroup.id} onClick={handleSelectPriceGroup} data-id={priceGroup.id} data-index={index}>
-                                <div className={styles['price-group__segments']}>
-                                    {priceGroup.groupSegments.map(groupSegments => {
-                                        const segment = groupSegments.segments[0]; // May have to loop through if we do grouping again
-                                        const stops = segment.legs.length - 1;
-                                        // console.log(groupSegments.segments)
-                                        return <div className={styles.segment} key={segment.itineraryGroupId}>
-                                            <div className={styles.segment__logo}>
-                                                <img src={`/airlinelogos/${segment.operatingAirlineCode.toLowerCase()}_logo.gif`} />
-                                            </div>
-                                            <div className={styles.segment__content}>
-                                                <div className={styles.segment__airports}>
-                                                    <div className={styles.airport}>
-                                                        <div className={styles.airport__time}>{segment.departureTime}</div>
-                                                        <div className={styles.airport__code}>{segment.departureAirportCode}</div>
-                                                    </div>
-                                                    <div className={styles.segment__legs}>
-                                                        <small>{segment.eft}</small>
-                                                        <div>{stops ? `${stops} Stop(s)` : 'Direct'}</div>
-                                                    </div>
-                                                    <div className={styles.airport}>
-                                                        <div className={styles.airport__time}>{segment.arrivalTime}</div>
-                                                        <div className={styles.airport__code}>{segment.arrivalAirportCode}</div>
-                                                    </div>
-                                                </div>
-                                                {/* <div className={styles.segment__tags}>
-                                                    {segment.seatsAvailable ? <div className={styles.tag}>
-                                                        {segment.seatsAvailable} seats left
-                                                    </div> : null}
-                                                    {segment.flexibleChange ? <div className={styles.tag}>
-                                                        Flexible Change
-                                                    </div> : null}
-                                                    {segment.flexibleCancellation ? <div className={styles.tag}>
-                                                        Flexible Cancellation
-                                                    </div> : null}
-                                                </div> */}
-                                            </div>
-                                        </div>
-                                    })}
-                                </div>
-                                <div className={styles['price-group__price']} dangerouslySetInnerHTML={{ __html: formatPrice(priceGroup) }} />
-                            </div>
-                        </div>
-                    }}
+                <List height={height - 88}
+                    width={width}
+                    itemCount={results.priceGroups.length}
+                    itemSize={itemSize}
+                    outerRef={listRef}
+                    itemData={itemData}
+                >
+                    {Row}
                 </List>
             )}
         </AutoSizer>
@@ -125,6 +99,57 @@ export default function Search() {
         <Modal open={selectedModal} handleClose={() => { setSelectedModal(undefined) }} />
     </React.Fragment>
 }
+
+const Row = React.memo(({ data: { priceGroups, handleSelectPriceGroup, selectedPriceGroup }, index, style }) => {
+    const priceGroup = priceGroups[index];
+    const isActive = selectedPriceGroup == priceGroup.id;
+    const className = classnames(styles['price-group'], {[`${styles['price-group--active']}`]: isActive})
+
+    return <div style={style} >
+        <div className={className} key={priceGroup.id} onClick={handleSelectPriceGroup} data-id={priceGroup.id} data-index={index}>
+            <div className={styles['price-group__segments']}>
+                {priceGroup.groupSegments.map(groupSegments => {
+                    const segment = groupSegments.segments[0]; // May have to loop through if we do grouping again
+                    const stops = segment.legs.length - 1;
+                    // console.log(groupSegments.segments)
+                    return <div className={styles.segment} key={segment.itineraryGroupId}>
+                        <div className={styles.segment__logo}>
+                            <img src={`/airlinelogos/${segment.operatingAirlineCode.toLowerCase()}_logo.gif`} />
+                        </div>
+                        <div className={styles.segment__content}>
+                            <div className={styles.segment__airports}>
+                                <div className={styles.airport}>
+                                    <div className={styles.airport__time}>{segment.departureTime}</div>
+                                    <div className={styles.airport__code}>{segment.departureAirportCode}</div>
+                                </div>
+                                <div className={styles.segment__legs}>
+                                    <small>{segment.eft}</small>
+                                    <div>{stops ? `${stops} Stop(s)` : 'Direct'}</div>
+                                </div>
+                                <div className={styles.airport}>
+                                    <div className={styles.airport__time}>{segment.arrivalTime}</div>
+                                    <div className={styles.airport__code}>{segment.arrivalAirportCode}</div>
+                                </div>
+                            </div>
+                            {/* <div className={styles.segment__tags}>
+                                                    {segment.seatsAvailable ? <div className={styles.tag}>
+                                                        {segment.seatsAvailable} seats left
+                                                    </div> : null}
+                                                    {segment.flexibleChange ? <div className={styles.tag}>
+                                                        Flexible Change
+                                                    </div> : null}
+                                                    {segment.flexibleCancellation ? <div className={styles.tag}>
+                                                        Flexible Cancellation
+                                                    </div> : null}
+                                                </div> */}
+                        </div>
+                    </div>
+                })}
+            </div>
+            <div className={styles['price-group__price']} dangerouslySetInnerHTML={{ __html: formatPrice(priceGroup) }} />
+        </div>
+    </div>
+}, areEqual);
 
 const Flight = withModal(props => {
     const selectedPriceGroup = React.useRef(props.results.priceGroups.filter(priceGroup => priceGroup.id == props.selectedPriceGroup)).current[0];
@@ -171,6 +196,8 @@ const Flight = withModal(props => {
         </div>
     </React.Fragment>
 })
+
+const createItemData = memoize(data => data)
 
 function formatPrice(priceGroup) {
     return `${priceGroup.fareTotalPrefix}${priceGroup.fareTotalIntText}${priceGroup.fareTotalDecimalPoint}${priceGroup.fareTotalDecText}${priceGroup.fareTotalSuffix}`

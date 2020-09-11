@@ -3,20 +3,26 @@ import Head from 'next/head';
 import styles from "../styles/search/search.module.scss";
 import flight from "../styles/search/flight.module.scss";
 import withModal from '../components/Modal';
+import PassengerPicker from "../modules/PassengerPicker";
 
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var filters = {
+    PassengerPicker
+}
 
 export default function Search() {
     const [results, setResults] = React.useState({});
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
-    const [selectedFilter, setSelectedFilter] = React.useState();
+    const [selectedModal, setSelectedModal] = React.useState();
+    const Modal = withModal(filters[selectedModal]);
+    console.log(selectedModal);
 
     const handleSelectPriceGroup = e => {
         setSelectedPriceGroup(Number(e.currentTarget.dataset.id))
     };
 
-    const handleSelectFilter = () => {
-        setSelectedFilter({})
+    const handleSelectModal = e => {
+        setSelectedModal(e.target.dataset.modal)
     };
 
     React.useEffect(() => {
@@ -32,18 +38,18 @@ export default function Search() {
         <div className={styles.header}>
             <div className={styles.header__row}>
                 <button className={styles.header__item}>🛫&nbsp; London - Paris</button>
-                <button className={styles.header__item}>👥&nbsp; 1 Adult</button>
+                <button className={styles.header__item} onClick={handleSelectModal} data-modal="PassengerPicker">👥&nbsp; 1 Adult</button>
                 <button className={styles.header__item}>📅&nbsp; Sat 10 Oct - Sat 17 Oct</button>
             </div>
             <div className={styles.header__row}>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Flexible Changes</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Flexible Cancellation</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Stops</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Bags</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Airlines</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Class</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Times</button>
-                <button className={styles.header__item} onClick={handleSelectFilter}>Duration</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Flexible Changes</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Flexible Cancellation</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Stops</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Bags</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Airlines</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Class</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Times</button>
+                <button className={styles.header__item} onClick={handleSelectModal}>Duration</button>
             </div>
         </div>
         <div>
@@ -99,9 +105,7 @@ export default function Search() {
             results={results}
             title="Flight Details"
         />
-        <Filter open={selectedFilter}
-            handleClose={() => { setSelectedFilter(undefined) }}
-        />
+        <Modal open={selectedModal}  handleClose={() => { setSelectedModal(undefined) }} />
     </React.Fragment>
 }
 
@@ -151,10 +155,6 @@ const Flight = withModal(props => {
             <button class="button">Book Flight</button>
         </div>
     </React.Fragment>
-})
-
-const Filter = withModal(props => {
-    return <div></div>
 })
 
 function formatPrice(priceGroup) {

@@ -41,6 +41,6 @@ function Modal({ position = 'fullscreen', title, open, handleClose, children }) 
 // HOC
 export default function withModal(WrappedComponent) {
     return ({ open, handleClose, position, title, ...rest }) => <Modal title={title} open={open} handleClose={handleClose} position={position}>
-        <WrappedComponent handleClose={handleClose} {...rest} />
+        {WrappedComponent ? <WrappedComponent handleClose={handleClose} {...rest} /> : null}
     </Modal>;
 }

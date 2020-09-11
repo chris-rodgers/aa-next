@@ -9,19 +9,19 @@ import withModal from '../components/Modal';
 import PassengerPicker from "../modules/PassengerPicker";
 
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-var filters = {
+var modals = {
     PassengerPicker
 }
 const outerRef = React.createRef();
-let results = [];
+let rawPriceGroups = [];
 
 export default function Search() {
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
-    const [{ priceGroups, sort }, setPriceGroups] = React.useState({ priceGroups: [], sort: "CHEAPEST" });
+    const [{ priceGroups, sort, filters }, setPriceGroups] = React.useState({ priceGroups: [], sort: "CHEAPEST", filters: {} });
     const [selectedModal, setSelectedModal] = React.useState();
     const itemSize = (44 * 2) + 14; // (height of each segment * segment count) + padding
 
-    const Modal = withModal(filters[selectedModal]);
+    const Modal = withModal(modals[selectedModal]);
 
     const handleSelectPriceGroup = e => {
         setSelectedPriceGroup(Number(e.currentTarget.dataset.id));
@@ -35,26 +35,30 @@ export default function Search() {
     };
 
     const handleSetSort = e => {
-        sortPriceGroups(e.target.dataset.sort);
+        processPriceGroups(e.target.dataset.sort);
         if (outerRef.current) {
             outerRef.current.scroll({ top: 0, behavior: "smooth" });
         }
     }
 
-    const sortPriceGroups = (newSort) => {
+    const processPriceGroups = (newSort, newFilters) => {
+        // Sorting
         const sortedPriceGroups = {
             CHEAPEST: items => items.sort((a, b) => a.fare.total - b.fare.total),
             FASTEST: items => items.sort((a, b) => a.lowestEft - b.lowestEft)
-        }[newSort](results);
+        }[newSort](rawPriceGroups);
 
-        setPriceGroups({ priceGroups: sortedPriceGroups, sort: newSort });
+        // Filtering
+        const filteredPriceGroups = sortedPriceGroups;
+
+        setPriceGroups({ priceGroups: filteredPriceGroups, sort: newSort, filters: newFilters });
     }
 
     React.useEffect(() => {
         // Call search API
         fetch('/api/search').then(result => result.json()).then(data => {
-            results = [...results, ...data.priceGroups];
-            sortPriceGroups(sort);
+            rawPriceGroups = [...rawPriceGroups, ...data.priceGroups];
+            processPriceGroups(sort);
         });
     }, []);
 

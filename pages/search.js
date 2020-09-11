@@ -12,20 +12,20 @@ var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oc
 var filters = {
     PassengerPicker
 }
+const outerRef = React.createRef();
 
 export default function Search() {
     const [results, setResults] = React.useState({});
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
     const [selectedModal, setSelectedModal] = React.useState();
-    const listRef = React.createRef();
     const itemSize = (44 * 2) + 14; // (height of each segment * segment count) + padding
 
     const Modal = withModal(filters[selectedModal]);
 
     const handleSelectPriceGroup = e => {
         setSelectedPriceGroup(Number(e.currentTarget.dataset.id));
-        if (listRef.current) {
-            listRef.current.scroll({ top: itemSize * Number(e.currentTarget.dataset.index), behavior: "smooth" });
+        if (outerRef.current) {
+            outerRef.current.scroll({ top: itemSize * Number(e.currentTarget.dataset.index), behavior: "smooth" });
         }
     };
 
@@ -81,7 +81,7 @@ export default function Search() {
                     width={width}
                     itemCount={results.priceGroups.length}
                     itemSize={itemSize}
-                    outerRef={listRef}
+                    outerRef={outerRef}
                     itemData={itemData}
                 >
                     {Result}

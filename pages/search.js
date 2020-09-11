@@ -4,7 +4,7 @@ import styles from "../styles/search/search.module.scss";
 import flight from "../styles/search/flight.module.scss";
 import withModal from '../components/Modal';
 import PassengerPicker from "../modules/PassengerPicker";
-import { VariableSizeList as List } from 'react-window';
+import { FixedSizeList as List } from 'react-window';
 import AutoSizer from "react-virtualized-auto-sizer";
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 var filters = {
@@ -54,7 +54,7 @@ export default function Search() {
         </div>
         <AutoSizer>
             {({ height, width }) => (
-                <List height={height} width={width} itemCount={results.priceGroups.length} itemSize={getItemSize}>
+                <List height={height - 91} width={width} itemCount={results.priceGroups.length} itemSize={(44*2)+10}>
                     {({ index, style }) => {
                         const priceGroup = results.priceGroups[index];
                         return <div style={style}>
@@ -83,7 +83,7 @@ export default function Search() {
                                                         <div className={styles.airport__code}>{segment.arrivalAirportCode}</div>
                                                     </div>
                                                 </div>
-                                                <div className={styles.segment__tags}>
+                                                {/* <div className={styles.segment__tags}>
                                                     {segment.seatsAvailable ? <div className={styles.tag}>
                                                         {segment.seatsAvailable} seats left
                                                     </div> : null}
@@ -93,7 +93,7 @@ export default function Search() {
                                                     {segment.flexibleCancellation ? <div className={styles.tag}>
                                                         Flexible Cancellation
                                                     </div> : null}
-                                                </div>
+                                                </div> */}
                                             </div>
                                         </div>
                                     })}
@@ -168,10 +168,4 @@ function formatPrice(priceGroup) {
 
 function dateToString(date) {
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getHours()}:${date.getMinutes()}`
-}
-
-function getItemSize(index) { 
-    const element = document.querySelector(`[data-index="${index}"]`);
-    console.log(`[data-index="${index}"]`);
-    return element ? element.offsetHeight: 145 
 }

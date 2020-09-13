@@ -185,8 +185,7 @@ export default function Search() {
             </svg>
             <div className={styles.header__row}>
                 {Object.keys(filters).map(key => {
-                    const filter = filters[key];
-                    return <button className={styles.header__item} onClick={handleSelectModal} data-modal={key}><small>▼</small> {filter.label}</button>
+                    return <button className={classnames(styles.header__item, { [`${styles['header__item--active']}`]: Object.keys(filter[key] || {}).length })} onClick={handleSelectModal} data-modal={key}><small>▼</small> {filters[key].label}</button>
                 })}
             </div>
         </div>
@@ -215,7 +214,7 @@ export default function Search() {
             title="Flight Details"
         />
         <Modal open={selectedModal} handleClose={() => { setSelectedModal(undefined) }} {...filters[selectedModal]} handleSetFilter={handleSetFilter} filter={filter} selectedModal={selectedModal} />
-    </React.Fragment>
+    </React.Fragment >
 }
 
 const Result = React.memo(({ data: { priceGroups, handleSelectPriceGroup, selectedPriceGroup }, index, style }) => {

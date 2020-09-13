@@ -8,7 +8,6 @@ const inputTypes = {
 
 // Filters
 export function Checkbox(props) {
-    console.log('render');
     return <div className={styles.checkboxes}>{Object.keys(props.items).map(key => {
         const item = props.items[key];
         const className = classnames(styles.checkbox, { [`${styles['checkbox--active']}`]: props.filter[props.selectedModal] && props.filter[props.selectedModal][key] })

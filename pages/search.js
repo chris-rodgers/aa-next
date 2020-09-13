@@ -139,8 +139,8 @@ export default function Search() {
         let filteredPriceGroups = sortedPriceGroups;
         Object.keys(newFilter).forEach(key => {
             const merged = [].concat.apply([], Object.values(newFilter[key]));
-            
-            if(merged.length){
+
+            if (merged.length) {
                 filteredPriceGroups = filteredPriceGroups.filter(x => merged.includes(x.id));
             }
         });
@@ -150,11 +150,14 @@ export default function Search() {
 
     React.useEffect(() => {
         // Call search API
-        fetch('/api/search').then(result => result.json()).then(data => {
-            rawPriceGroups = [...rawPriceGroups, ...data.priceGroups];
-            createFilters();
-            processPriceGroups({ sort });
-        });
+        [0].forEach(i => {
+            fetch(`/api/search?api=${i}`).then(result => result.json()).then(data => {
+                console.log(data);
+                rawPriceGroups = [...rawPriceGroups, ...data];
+                createFilters();
+                processPriceGroups({});
+            });
+        })
     }, []);
 
     const itemData = createItemData({

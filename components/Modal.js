@@ -5,17 +5,17 @@ import classnames from "classnames";
 import useDelayUnmount from "../hooks/useDelayUnmount";
 
 function Modal({ position = 'fullscreen', title, open, handleClose, children }) {
-    const shouldRenderChild = useDelayUnmount(open, 200);
+    // const shouldRenderChild = useDelayUnmount(open, 200);
 
-    const className = classnames(styles.modal, styles['modal--position-' + position], {
-        [`${styles['modal--visible']}`]: open
-    });
+    const className = classnames(styles.modal, styles['modal--position-' + position]/*, {
+        [`${styles['modal--visible']}`]: true
+    }*/);
 
-    React.useEffect(() => {
-        document.body.style.overflow = shouldRenderChild ? 'hidden' : 'visible';
-    }, [shouldRenderChild])
+    // React.useEffect(() => {
+    //     document.body.style.overflow = shouldRenderChild ? 'hidden' : 'visible';
+    // }, [shouldRenderChild])
 
-    if (!shouldRenderChild) {
+    if (!open) {
         return null
     }
 

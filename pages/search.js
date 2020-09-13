@@ -46,15 +46,15 @@ export default function Search() {
     }
 
     const handleSetFilter = e => {
-        const { type, items: { [e.target.dataset.item]: item } } = filters[e.target.dataset.filter];
+        const { type, items: { [e.currentTarget.dataset.item]: item } } = filters[e.currentTarget.dataset.filter];
         let res = { ...filter };
 
         // Create filter label if doesn't already exist in obj
-        res[e.target.dataset.filter] = res[e.target.dataset.filter] || {};
+        res[e.currentTarget.dataset.filter] = res[e.currentTarget.dataset.filter] || {};
 
-        res[e.target.dataset.filter] = {
-            CHECKBOX: ({ [e.target.dataset.item]: y, ...rest }) => { return y ? rest : { ...rest, [e.target.dataset.item]: item.priceGroupIds } }
-        }[type](res[e.target.dataset.filter]);
+        res[e.currentTarget.dataset.filter] = {
+            CHECKBOX: ({ [e.currentTarget.dataset.item]: y, ...rest }) => { return y ? rest : { ...rest, [e.currentTarget.dataset.item]: item.priceGroupIds } }
+        }[type](res[e.currentTarget.dataset.filter]);
 
         processPriceGroups({ filter: res });
     }

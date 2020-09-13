@@ -7,13 +7,16 @@ import styles from "../styles/search/search.module.scss";
 import flight from "../styles/search/flight.module.scss";
 import withModal from '../components/Modal';
 import PassengerPicker from "../modules/PassengerPicker";
-import { Checkbox } from "../modules/Filters";
+import { Checkbox, DepartureTime } from "../modules/Filters";
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 var modals = {
     PassengerPicker,
     AIRLINE: Checkbox,
     DEPARTUREAIRPORT: Checkbox,
-    ARRIVALAIRPORT: Checkbox
+    ARRIVALAIRPORT: Checkbox,
+    STOPS: Checkbox,
+    DEPARTURETIME: DepartureTime
+
 }
 const outerRef = React.createRef();
 let rawPriceGroups = [];
@@ -48,16 +51,26 @@ export default function Search() {
     }
 
     const handleSetFilter = e => {
-        const { type, items: { [e.currentTarget.dataset.item]: item } } = filters[e.currentTarget.dataset.filter];
+        const { type, items } = filters[e.currentTarget.dataset.filter];
         let res = { ...filter };
 
         // Create filter label if doesn't already exist in obj
         res[e.currentTarget.dataset.filter] = res[e.currentTarget.dataset.filter] || {};
 
-        res[e.currentTarget.dataset.filter] = {
-            CHECKBOX: ({ [e.currentTarget.dataset.item]: y, ...rest }) => { return y ? rest : { ...rest, [e.currentTarget.dataset.item]: item.priceGroupIds } }
-        }[type](res[e.currentTarget.dataset.filter]);
+        // if item exists
+        if(e.currentTarget.dataset.item){
+            const item = items[e.currentTarget.dataset.item];
+            res[e.currentTarget.dataset.filter] = {
+                CHECKBOX: ({ [e.currentTarget.dataset.item]: y, ...rest }) => { return y ? rest : { ...rest, [e.currentTarget.dataset.item]: item.priceGroupIds } },
+                RADIO: () => { return {[e.currentTarget.dataset.item]: item.priceGroupIds} } 
+            }[type](res[e.currentTarget.dataset.filter]);
+        } 
+        // else reset filter
+        else {
+            res[e.currentTarget.dataset.filter] = {}
+        }
 
+    
         processPriceGroups({ filter: res });
     }
 
@@ -72,6 +85,31 @@ export default function Search() {
                     label: 'Airline',
                     key: 'displayAirlineCode',
                     meta: ['displayAirlineName'],
+                },
+                {
+                    name: 'STOPS',
+                    type: 'RADIO',
+                    label: 'Stops',
+                    key: segment => !segment.stops ? 'Direct' : 'With stops',
+                    meta: []
+                },
+                {
+                    name: 'DEPARTURETIME',
+                    type: 'CHECKBOX',
+                    label: 'Departre time',
+                    key: segment => {
+                        if(segment.departureTimeData > 2000){
+                            return 4
+                        }
+                        if(segment.departureTimeData > 1500){
+                            return 3
+                        }
+                        if(segment.departureTimeData > 1000){
+                            return 2
+                        }
+                        return 1
+                    },
+                    meta: []
                 }
             ],
             DEPART: [
@@ -98,10 +136,15 @@ export default function Search() {
             // console.log(type, x, priceGroupId)
             config[type].forEach(f => {
                 res[f.name] = res[f.name] || { type: f.type, label: f.label, items: {} };
+                const k = f.key;
+                let l = null;
+                if (typeof f.key === 'function') {
+                    l = f.key(x);
+                }
 
-                res[f.name].items[x[f.key]] = {
+                res[f.name].items[l || x[k]] = {
                     meta: f.meta.map(key => x[key]),
-                    priceGroupIds: [...res[f.name].items[x[f.key]] ? res[f.name].items[x[f.key]].priceGroupIds : [], priceGroupId]
+                    priceGroupIds: [...res[f.name].items[l || x[k]] ? res[f.name].items[l || x[k]].priceGroupIds : [], priceGroupId]
                 };
             });
         }
@@ -111,7 +154,7 @@ export default function Search() {
             if (config.PRICEGROUP) { handleAddFilter('PRICEGROUP', priceGroup, priceGroup.id) }
             const firstSegment = priceGroup.groupSegments[0]
             const lastSegment = priceGroup.groupSegments[priceGroup.groupSegments.length - 1];
-            const roundTrip = searchType != "SINGLE" && firstSegment && lastSegment && firstSegment.departureAirportCode == lastSegment.arrivalAirportCode;
+            const roundTrip = firstSegment.departureAirportCode == lastSegment.arrivalAirportCode;
 
             // SEGMENT
             priceGroup.groupSegments.forEach((groupSegment, si) => {
@@ -125,17 +168,19 @@ export default function Search() {
                     if (li == 0 && si == 0) {
                         if (config.DEPART) { handleAddFilter('DEPART', leg, priceGroup.id) }
 
-                    // ARRIVE
+                        // ARRIVE
                     } else if (li == segment.legs.length - 1 && (roundTrip || searchType == 'SINGLE') && searchType != 'MULTI' && si == 0) {
                         if (config.ARRIVE) { handleAddFilter('ARRIVE', leg, priceGroup.id) }
 
-                    // STOP
+                        // STOP
                     } else {
                         if (config.STOP) { handleAddFilter('STOP', leg, priceGroup.id) }
                     }
                 });
             });
         });
+
+        console.log(res)
 
         setFilters(res);
     }

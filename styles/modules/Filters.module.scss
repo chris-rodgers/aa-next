@@ -48,6 +48,17 @@
     }
 }
 
+// Reset Button
+.reset{
+    margin: 40px auto 0 auto;
+    display: block;
+    border: 2px solid var(--color-cadet);
+    padding: var(--spacing);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+
+}
+
 // Airlines
 .checkboxes--airline .column{
     flex-basis: 33.33%;
@@ -55,4 +66,14 @@
 .checkboxes--airline .checkbox{
     flex-direction: column;
     justify-content: space-between;
+}
+// Departure times
+.checkboxes--departuretime .column{
+    flex-basis: 25%;
+}
+.checkboxes--departuretime .checkbox{
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100px;
+    font-size: 12px;
 }

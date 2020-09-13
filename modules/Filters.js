@@ -8,10 +8,10 @@ const inputTypes = {
 
 // Filters
 export function Checkbox(props) {
+    console.log('render');
     return <div className={styles.checkboxes}>{Object.keys(props.items).map(key => {
         const item = props.items[key];
         const className = classnames(styles.checkbox, { [`${styles['checkbox--active']}`]: props.filter[props.selectedModal] && props.filter[props.selectedModal][key] })
-        console.log(props);
         // console.log(props.filter);
         return <div className={className} onClick={props.handleSetFilter} data-filter={props.selectedModal} data-item={key} key={key}>
             <div className={styles.checkbox__marker} />

@@ -157,12 +157,8 @@ export default function Search() {
         });
     }, []);
 
-    if (!priceGroups) {
-        return null;
-    }
-
     const itemData = createItemData({
-        priceGroups,
+        priceGroups: priceGroups || [],
         handleSelectPriceGroup,
         selectedPriceGroup
     });

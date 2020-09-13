@@ -1,4 +1,4 @@
-.checkboxes{
+.checkboxes,.times{
     display: flex;
     margin: 0 -5px;
     flex-wrap: wrap;
@@ -39,6 +39,7 @@
     }
     &--active{
         border-color: var(--color-cobalt);
+        font-weight: bold;
         .checkbox__marker:before{
             background-color: var(--color-cobalt);
         }
@@ -67,13 +68,42 @@
     flex-direction: column;
     justify-content: space-between;
 }
+
 // Departure times
-.checkboxes--departuretime .column{
+.times .column{
     flex-basis: 50%;
 }
-.checkboxes--departuretime .checkbox{
+.time{
+    display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 100px;
-    font-size: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--spacing);
+    height: 100px;
+    cursor: pointer;
+    &__icon{
+        font-size: 40px;
+        width: 50px;
+        height: 50px;
+        fill: none;
+        stroke-miterlimit: 10px;
+        stroke-width: 6px;
+        stroke: var(--color-cadet);
+        stroke-linecap: round;
+        display: block;
+        margin-bottom: var(--spacing);
+        transform: scale(0.7);
+    }
+    &__label{
+    }
+    &--active .time__icon{
+        fill: var(--color-island);
+        stroke: var(--color-island);
+        animation: icon 0.25s ease;
+        transform: scale(1);
+    }
+    &--active &__label{
+        color: var(--color-island);
+        font-weight: bold;
+    }
 }

@@ -7,10 +7,12 @@ import styles from "../styles/search/search.module.scss";
 import flight from "../styles/search/flight.module.scss";
 import withModal from '../components/Modal';
 import PassengerPicker from "../modules/PassengerPicker";
-
+import { Checkbox } from "../modules/Filters";
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 var modals = {
-    PassengerPicker
+    PassengerPicker,
+    AIRLINE: Checkbox,
+    DEPARTUREAIRPORT: Checkbox
 }
 const outerRef = React.createRef();
 let rawPriceGroups = [];
@@ -18,7 +20,8 @@ const segments = 2;
 
 export default function Search() {
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
-    const [{ priceGroups, sort, filters }, setPriceGroups] = React.useState({ priceGroups: [], sort: "CHEAPEST", filters: {} });
+    const [filters, setFilters] = React.useState({});
+    const [{ priceGroups, sort, filter }, setPriceGroups] = React.useState({ priceGroups: [], sort: "CHEAPEST", filter: {} });
     const [selectedModal, setSelectedModal] = React.useState();
     const itemSize = (44 * segments) + 14; // (height of each segment * segment count) + padding
 
@@ -36,40 +39,121 @@ export default function Search() {
     };
 
     const handleSetSort = e => {
-        processPriceGroups(e.target.dataset.sort);
+        processPriceGroups({ sort: e.target.dataset.sort });
         if (outerRef.current) {
             outerRef.current.scroll({ top: 0, behavior: "smooth" });
         }
     }
 
-    const processPriceGroups = (newSort, newFilters) => {
+    const handleSetFilter = e => {
+        const { type, items: { [e.target.dataset.item]: item } } = filters[e.target.dataset.filter];
+        let res = { ...filter };
+
+        // Create filter label if doesn't already exist in obj
+        res[e.target.dataset.filter] = res[e.target.dataset.filter] || {};
+
+        res[e.target.dataset.filter] = {
+            CHECKBOX: ({ [e.target.dataset.item]: y, ...rest }) => { return y ? rest : { ...rest, [e.target.dataset.item]: item.priceGroupIds } }
+        }[type](res[e.target.dataset.filter]);
+
+        processPriceGroups({ filter: res });
+    }
+
+    const createFilters = () => {
+        const res = {};
+
+        const config = {
+            SEGMENT: [
+                {
+                    name: 'AIRLINE',
+                    type: 'CHECKBOX',
+                    label: 'Airline',
+                    key: 'displayAirlineCode',
+                    meta: ['displayAirlineName'],
+                }
+            ],
+            DEPART: [
+                {
+                    name: 'DEPARTUREAIRPORT',
+                    type: 'CHECKBOX',
+                    label: 'Departure Airport',
+                    key: 'departureAirportCode',
+                    meta: ['departureAirportName']
+                }
+            ]
+        };
+
+        const handleAddFilter = (type, x, priceGroupId) => {
+            // console.log(type, x, priceGroupId)
+            config[type].forEach(f => {
+                res[f.name] = res[f.name] || { type: f.type, label: f.label, items: {} };
+
+                res[f.name].items[x[f.key]] = {
+                    meta: f.meta.map(key => x[key]),
+                    priceGroupIds: [...res[f.name].items[x[f.key]] ? res[f.name].items[x[f.key]].priceGroupIds : [], priceGroupId]
+                };
+            });
+        }
+
+        // PRICEGROUP
+        rawPriceGroups.forEach(priceGroup => {
+            if (config.PRICEGROUP) { handleAddFilter('PRICEGROUP', priceGroup, priceGroup.id) }
+
+            // SEGMENT
+            priceGroup.groupSegments.forEach(groupSegment => {
+                const segment = groupSegment.segments[0]; // May need to change this
+
+                if (config.SEGMENT) { handleAddFilter('SEGMENT', segment, priceGroup.id) }
+
+                // LEG
+                segment.legs.forEach((leg, i) => {
+                    // DEPART
+                    if (i == 0) {
+                        if (config.DEPART) { handleAddFilter('DEPART', leg, priceGroup.id) }
+
+                        // ARRIVE
+                    } else if (i == segment.legs.length - 1) {
+                        if (config.ARRIVE) { handleAddFilter('ARRIVE', leg, priceGroup.id) }
+
+                        // STOP
+                    } else {
+                        if (config.STOP) { handleAddFilter('STOP', leg, priceGroup.id) }
+                    }
+                });
+            });
+        });
+
+        setFilters(res);
+    }
+
+    const processPriceGroups = n => {
         // Sorting
+        const newSort = n.sort || sort;
+        const newFilter = n.filter || filter;
         const sortedPriceGroups = {
             CHEAPEST: items => items.sort((a, b) => a.fare.total - b.fare.total),
             FASTEST: items => items.sort((a, b) => a.lowestEft - b.lowestEft)
         }[newSort](rawPriceGroups);
 
         // Filtering
-        const filteredPriceGroups = sortedPriceGroups.filter(items => {
-
-            const segmentFilters = items.groupSegments.filter(gs => {
-                const segment = gs.segments[0]; // May need to change this
-                // example
-                // return segment.operatingAirlineCode == "BA";
-                return true;
-            })
-                        
-            return segmentFilters.length  == segments;
+        let filteredPriceGroups = sortedPriceGroups;
+        Object.keys(newFilter).forEach(key => {
+            const merged = [].concat.apply([], Object.values(newFilter[key]));
+            
+            if(merged.length){
+                filteredPriceGroups = filteredPriceGroups.filter(x => merged.includes(x.id));
+            }
         });
 
-        setPriceGroups({ priceGroups: filteredPriceGroups, sort: newSort, filters: newFilters });
+        setPriceGroups({ priceGroups: filteredPriceGroups, sort: newSort, filter: newFilter });
     }
 
     React.useEffect(() => {
         // Call search API
         fetch('/api/search').then(result => result.json()).then(data => {
             rawPriceGroups = [...rawPriceGroups, ...data.priceGroups];
-            processPriceGroups(sort);
+            createFilters();
+            processPriceGroups({ sort });
         });
     }, []);
 
@@ -101,12 +185,10 @@ export default function Search() {
                 <path d="M4.25,5.61C6.27,8.2,10,13,10,13v6c0,0.55,0.45,1,1,1h2c0.55,0,1-0.45,1-1v-6c0,0,3.72-4.8,5.74-7.39 C20.25,4.95,19.78,4,18.95,4H5.04C4.21,4,3.74,4.95,4.25,5.61z" fill="#384756" />
             </svg>
             <div className={styles.header__row}>
-                <button className={styles.header__item} onClick={handleSelectModal}><small>▼</small> Stops</button>
-                <button className={styles.header__item} onClick={handleSelectModal}><small>▼</small> Bags</button>
-                <button className={styles.header__item} onClick={handleSelectModal}><small>▼</small> Airlines</button>
-                <button className={styles.header__item} onClick={handleSelectModal}><small>▼</small> Times</button>
-                <button className={styles.header__item} onClick={handleSelectModal}><small>▼</small> Flexible Changes</button>
-                <button className={styles.header__item} onClick={handleSelectModal}><small>▼</small> Flexible Cancellation</button>
+                {Object.keys(filters).map(key => {
+                    const filter = filters[key];
+                    return <button className={styles.header__item} onClick={handleSelectModal} data-modal={key}><small>▼</small> {filter.label}</button>
+                })}
             </div>
         </div>
         <AutoSizer>
@@ -133,7 +215,7 @@ export default function Search() {
             priceGroups={priceGroups}
             title="Flight Details"
         />
-        <Modal open={selectedModal} handleClose={() => { setSelectedModal(undefined) }} />
+        <Modal open={selectedModal} handleClose={() => { setSelectedModal(undefined) }} {...filters[selectedModal]} handleSetFilter={handleSetFilter} filter={filter} selectedModal={selectedModal} />
     </React.Fragment>
 }
 

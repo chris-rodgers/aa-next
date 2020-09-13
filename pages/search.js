@@ -12,18 +12,20 @@ var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oc
 var modals = {
     PassengerPicker,
     AIRLINE: Checkbox,
-    DEPARTUREAIRPORT: Checkbox
+    DEPARTUREAIRPORT: Checkbox,
+    ARRIVALAIRPORT: Checkbox
 }
 const outerRef = React.createRef();
 let rawPriceGroups = [];
-const segments = 2;
+let segmentCount = 1;
+const searchType = 'RETURN';
 
 export default function Search() {
     const [selectedPriceGroup, setSelectedPriceGroup] = React.useState();
     const [filters, setFilters] = React.useState({});
     const [{ priceGroups, sort, filter }, setPriceGroups] = React.useState({ priceGroups: [], sort: "CHEAPEST", filter: {} });
     const [selectedModal, setSelectedModal] = React.useState();
-    const itemSize = (44 * segments) + 14; // (height of each segment * segment count) + padding
+    const itemSize = (44 * segmentCount) + 14; // (height of each segment * segment count) + padding
 
     const Modal = withModal(modals[selectedModal]);
 
@@ -80,6 +82,15 @@ export default function Search() {
                     key: 'departureAirportCode',
                     meta: ['departureAirportName']
                 }
+            ],
+            ARRIVE: [
+                {
+                    name: 'ARRIVALAIRPORT',
+                    type: 'CHECKBOX',
+                    label: 'Arrival Airport',
+                    key: 'arrivalAirportCode',
+                    meta: ['arrivalAirportName']
+                }
             ]
         };
 
@@ -98,24 +109,27 @@ export default function Search() {
         // PRICEGROUP
         rawPriceGroups.forEach(priceGroup => {
             if (config.PRICEGROUP) { handleAddFilter('PRICEGROUP', priceGroup, priceGroup.id) }
+            const firstSegment = priceGroup.groupSegments[0]
+            const lastSegment = priceGroup.groupSegments[priceGroup.groupSegments.length - 1];
+            const roundTrip = searchType != "SINGLE" && firstSegment && lastSegment && firstSegment.departureAirportCode == lastSegment.arrivalAirportCode;
 
             // SEGMENT
-            priceGroup.groupSegments.forEach(groupSegment => {
+            priceGroup.groupSegments.forEach((groupSegment, si) => {
                 const segment = groupSegment.segments[0]; // May need to change this
 
                 if (config.SEGMENT) { handleAddFilter('SEGMENT', segment, priceGroup.id) }
 
                 // LEG
-                segment.legs.forEach((leg, i) => {
+                segment.legs.forEach((leg, li) => {
                     // DEPART
-                    if (i == 0) {
+                    if (li == 0 && si == 0) {
                         if (config.DEPART) { handleAddFilter('DEPART', leg, priceGroup.id) }
 
-                        // ARRIVE
-                    } else if (i == segment.legs.length - 1) {
+                    // ARRIVE
+                    } else if (li == segment.legs.length - 1 && (roundTrip || searchType == 'SINGLE') && searchType != 'MULTI' && si == 0) {
                         if (config.ARRIVE) { handleAddFilter('ARRIVE', leg, priceGroup.id) }
 
-                        // STOP
+                    // STOP
                     } else {
                         if (config.STOP) { handleAddFilter('STOP', leg, priceGroup.id) }
                     }
@@ -151,9 +165,9 @@ export default function Search() {
     React.useEffect(() => {
         // Call search API
         [0].forEach(i => {
-            fetch(`/api/search?api=${i}`).then(result => result.json()).then(data => {
-                console.log(data);
-                rawPriceGroups = [...rawPriceGroups, ...data];
+            fetch(`/api/search-${searchType.toLocaleLowerCase()}?api=${i}`).then(result => result.json()).then(data => {
+                rawPriceGroups = [...rawPriceGroups, ...data.priceGroups];
+                segmentCount = data.segmentCount;
                 createFilters();
                 processPriceGroups({});
             });

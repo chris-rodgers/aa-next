@@ -8,13 +8,21 @@ const inputTypes = {
 
 // Filters
 export function Checkbox(props) {
-    return <div className={styles.checkboxes}>{Object.keys(props.items).map(key => {
+    console.log(props)
+    return <div className={`${styles.checkboxes} ${styles[`checkboxes--${props.selectedModal.toLowerCase()}`]}`}>{Object.keys(props.items).map(key => {
         const item = props.items[key];
         const className = classnames(styles.checkbox, { [`${styles['checkbox--active']}`]: props.filter[props.selectedModal] && props.filter[props.selectedModal][key] })
         // console.log(props.filter);
-        return <div className={className} onClick={props.handleSetFilter} data-filter={props.selectedModal} data-item={key} key={key}>
-            <div className={styles.checkbox__marker} />
-            <div className={styles.checkbox__label}>{item.meta[0]}</div>
+        return <div className={styles.column}>
+            <div className={className} onClick={props.handleSetFilter} data-filter={props.selectedModal} data-item={key} key={key}>
+                <div className={styles.checkbox__marker} />
+
+                {{
+                    AIRLINE: <React.Fragment>
+                        <img src={`/airlinelogos/${key.toLowerCase()}_logo.gif`} alt={item.meta[0]} />
+                    </React.Fragment>
+                }[props.selectedModal] || <div className={styles.checkbox__label}>{item.meta[0]}</div>}
+            </div>
         </div>
     })}</div>
 }

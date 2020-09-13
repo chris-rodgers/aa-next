@@ -8,14 +8,11 @@ const inputTypes = {
 export function Checkbox(props) {
     return <div>{Object.keys(props.items).map(key => {
         const item = props.items[key];
-        const id = `filter_${Math.random().toString(36)}`;
 
         // console.log(props.filter);
-        return <React.Fragment key={key}>
-            <div onClick={props.handleSetFilter} data-filter={props.selectedModal} data-item={key}>
-                {item.meta[0]}
-            </div>
-        </React.Fragment>
+        return <div onClick={props.handleSetFilter} data-filter={props.selectedModal} data-item={key} key={key}>
+            {item.meta[0]}
+        </div>
     })}</div>
 }
 
@@ -31,5 +28,5 @@ export function Checkbox(props) {
 // };
 
 {
-    
+
 }
